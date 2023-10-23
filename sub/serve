@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Start nginx in the background
+nginx -c /opt/ml/nginx.conf &
+
+# Start gunicorn for our Flask app
+gunicorn --timeout 120 --bind unix:/tmp/gunicorn.sock -k sync -w $(nproc) wsgi:app

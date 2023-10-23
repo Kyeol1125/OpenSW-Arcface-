@@ -1,0 +1,13 @@
+gdown
+matplotlib
+matplotlib-inline
+numpy
+opencv-python
+pandas
+pickleshare
+Pillow
+boto3
+Flask
+gunicorn
+Werkzeug==2.0.1
+blinker==1.4
