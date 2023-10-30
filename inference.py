@@ -5,10 +5,7 @@ import json
 from io import BytesIO
 from PIL import Image
 import numpy as np
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import tensorflow as tf
-
-
 
 if os.path.exists("/opt/ml/model/arcface_weights.h5"):
     model_dir = '/opt/ml/model'
@@ -19,8 +16,6 @@ sys.path.append(model_dir)
 from deepface import DeepFace
 from commons import functions, distance as dst
 import ArcFace
-
-print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
 target_size = 112, 112
 detector_backend = 'retinaface'
@@ -38,7 +33,7 @@ def model_fn(model_dir):
 def input_fn(request_body, request_content_type):
     """Load the input data and fetch images from S3."""
     input_data = json.loads(request_body)
-    bucket = 's3-driver-upload'
+    bucket = input_data['bucket_name']
     img1_path = input_data['img1_path']
     img2_path = input_data['img2_path']
 
@@ -75,19 +70,15 @@ def predict_fn(input_data, model):
         distance = dst.findEuclideanDistance(img1_embedding, img2_embedding)
     elif metric == 'euclidean_l2':
         distance = dst.findEuclideanDistance(dst.l2_normalize(img1_embedding), dst.l2_normalize(img2_embedding))
-
+    
+    
+     
     threshold = findThreshold(metric)
 
     if distance <= threshold:
-        result = "they are same person"
+        return 1 #동일인물
     else:
-        result = "they are different persons"
-
-    return {
-        "result": result,
-        "distance": round(distance, 2),
-        "threshold": round(threshold, 2)
-    }
+        return 0 #비동일인물
 def output_fn(prediction_output, response_content_type):
     """Format the prediction output."""
     if response_content_type == 'application/json':
@@ -105,7 +96,7 @@ def findThreshold(metric):
         return 1.1315718048269017
     
     
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,Response
 
 app = Flask(__name__)
 model = model_fn(model_dir)  # 모델을 전역 변수로 로드
@@ -119,4 +110,4 @@ def infer():
     body = request.data.decode('utf-8')
     img1, img2 = input_fn(body, request_content_type='application/json')
     predictions = predict_fn((img1, img2), model)
-    return jsonify(predictions)
+    return Response(str(predictions), mimetype='text/plain')
