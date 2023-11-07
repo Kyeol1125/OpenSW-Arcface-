@@ -1,8 +1,0 @@
-<resources>
-    <string name="app_name">My Application</string>
-    <string name="understand">Understand</string>
-    <string name="help">help</string>
-    <string name="upload">면허증 업로드 하기</string>
-    <string name="black">블랙박스 연동하기</string>
-    <string name="Home">Home</string>
-</resources>
